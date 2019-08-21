@@ -1,0 +1,707 @@
+---
+title: "MLMI simulations"
+author: "Jonathan Bartlett"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    number_sections: true
+    toc: true
+    toc_depth: 2
+  pdf_document: 
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+---
+
+This document prints the results of simulations performed in the paper 'Maximum likelihood multiple imputation: Imputation can work without posterior draws' by Von Hippel and Bartlett.
+
+# Y on X analysis model
+
+## RMSE of estimates
+
+```{r, echo=FALSE}
+
+load(file=paste("simResults_yonx_",1, ".RData", sep=""))
+
+missPropLevels <- c(25,50)
+missMecLevels <- c("MCAR", "MAR")
+MLevels <- c(10, 50, 200)
+
+methodNames <- c("PDMI WB", "PDMI SB Res Var", "PDMI SB bivar", 
+  "MLMI WB", "MLMI WB res var", "MLMI WB bivar", "MLMI SB Res Var", "MLMI SB bivar",
+  "PDMI Boot", "MLMI Boot")
+
+methodsToPrint <- c(1, 4, 9, 10)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- round(100*(sqrt(mean((ests[j,k,l,,methodsToPrint[i]]-0.5)^2))/0.5),1)
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+## % RMSE of SE estimates
+
+```{r, echo=FALSE}
+
+methodsToPrint <- c(2, 7, 1, 4, 9, 10)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- round(100*(sqrt(mean((se[j,k,l,,methodsToPrint[i]]-sd(ests[j,k,l,,methodsToPrint[i]]))^2))/sd(ests[j,k,l,,methodsToPrint[i]])),1)
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+
+## % Mean length of 95% CIs
+
+```{r, echo=FALSE}
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- paste(round(mean(ci[j,k,l,,methodsToPrint[i],2]-ci[j,k,l,,methodsToPrint[i],1]),2), "(", round(100*(mean((ci[j,k,l,,methodsToPrint[i],1]<0.5) & (ci[j,k,l,,methodsToPrint[i],2]>0.5))-0.95),1), ")", sep=" ")
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+
+## Mean(SE)/empirical SE for different WB approaches
+
+```{r, echo=FALSE}
+
+methodsToPrint <- c(4,5,6)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- round(mean(se[j,k,l,,methodsToPrint[i]])/sd(ests[j,k,l,,methodsToPrint[i]]),2)
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+## Mean CI length (coverage) for different WB approaches
+
+```{r, echo=FALSE}
+
+methodsToPrint <- c(4,5,6)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- paste(round(mean(ci[j,k,l,,methodsToPrint[i],2]-ci[j,k,l,,methodsToPrint[i],1]),2), "(", round(100*(mean((ci[j,k,l,,methodsToPrint[i],1]<0.5) & (ci[j,k,l,,methodsToPrint[i],2]>0.5))-0.95),1), ")", sep=" ")
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+## Median degrees of freedom for different WB approaches
+
+```{r, echo=FALSE}
+
+methodsToPrint <- c(4,5,6)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- round(median(df[j,k,l,,methodsToPrint[i]]),1)
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+
+## Mean(SE)/empirical SE for different SB approaches
+
+```{r, echo=FALSE}
+
+methodsToPrint <- c(2, 3, 7, 8)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- round(mean(se[j,k,l,,methodsToPrint[i]])/sd(ests[j,k,l,,methodsToPrint[i]]),2)
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+## Mean CI length (coverage) for different SB approaches
+
+```{r, echo=FALSE}
+
+methodsToPrint <- c(2, 3, 7, 8)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- paste(round(mean(ci[j,k,l,,methodsToPrint[i],2]-ci[j,k,l,,methodsToPrint[i],1]),2), "(", round(100*(mean((ci[j,k,l,,methodsToPrint[i],1]<0.5) & (ci[j,k,l,,methodsToPrint[i],2]>0.5))-0.95),1), ")", sep=" ")
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+## Median degrees of freedom for different SB approaches
+
+```{r, echo=FALSE}
+
+methodsToPrint <- c(2, 3, 7, 8)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- round(median(df[j,k,l,,methodsToPrint[i]]),1)
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+
+# X on Y analysis model
+
+## RMSE of estimates
+
+```{r, echo=FALSE}
+
+load(file=paste("simResults_yonx_",0, ".RData", sep=""))
+
+missPropLevels <- c(25,50)
+missMecLevels <- c("MCAR", "MAR")
+MLevels <- c(10, 50, 200)
+
+methodsToPrint <- c(1, 4, 9, 10)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- round(100*(sqrt(mean((ests[j,k,l,,methodsToPrint[i]]-0.5)^2))/0.5),1)
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+
+## % RMSE of SE estimates
+
+```{r, echo=FALSE}
+
+methodsToPrint <- c(2, 7, 1, 4, 9, 10)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- round(100*(sqrt(mean((se[j,k,l,,methodsToPrint[i]]-sd(ests[j,k,l,,methodsToPrint[i]]))^2))/sd(ests[j,k,l,,methodsToPrint[i]])),1)
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+
+## % Mean length of 95% CIs
+
+```{r, echo=FALSE}
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- paste(round(mean(ci[j,k,l,,methodsToPrint[i],2]-ci[j,k,l,,methodsToPrint[i],1]),2), "(", round(100*(mean((ci[j,k,l,,methodsToPrint[i],1]<0.5) & (ci[j,k,l,,methodsToPrint[i],2]>0.5))-0.95),1), ")", sep=" ")
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+
+## Mean(SE)/empirical SE for different WB approaches
+
+```{r, echo=FALSE}
+
+methodsToPrint <- c(4,5,6)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- round(mean(se[j,k,l,,methodsToPrint[i]])/sd(ests[j,k,l,,methodsToPrint[i]]),2)
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+## Mean CI length (coverage) for different WB approaches
+
+```{r, echo=FALSE}
+
+methodsToPrint <- c(4,5,6)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- paste(round(mean(ci[j,k,l,,methodsToPrint[i],2]-ci[j,k,l,,methodsToPrint[i],1]),2), "(", round(100*(mean((ci[j,k,l,,methodsToPrint[i],1]<0.5) & (ci[j,k,l,,methodsToPrint[i],2]>0.5))-0.95),1), ")", sep=" ")
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+## Median degrees of freedom for different WB approaches
+
+```{r, echo=FALSE}
+
+methodsToPrint <- c(4,5,6)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- round(median(df[j,k,l,,methodsToPrint[i]]),1)
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+
+## Mean(SE)/empirical SE for different SB approaches
+
+```{r, echo=FALSE}
+
+methodsToPrint <- c(2, 3, 7, 8)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- round(mean(se[j,k,l,,methodsToPrint[i]])/sd(ests[j,k,l,,methodsToPrint[i]]),2)
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+## Mean CI length (coverage) for different SB approaches
+
+```{r, echo=FALSE}
+
+methodsToPrint <- c(2, 3, 7, 8)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- paste(round(mean(ci[j,k,l,,methodsToPrint[i],2]-ci[j,k,l,,methodsToPrint[i],1]),2), "(", round(100*(mean((ci[j,k,l,,methodsToPrint[i],1]<0.5) & (ci[j,k,l,,methodsToPrint[i],2]>0.5))-0.95),1), ")", sep=" ")
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
+
+## Median degrees of freedom for different SB approaches
+
+```{r, echo=FALSE}
+
+methodsToPrint <- c(2, 3, 7, 8)
+
+resTable <- array(0, dim=c(12, length(methodsToPrint)+3))
+
+j <- 0
+rowNum <- 1
+for (missProp in missPropLevels) {
+  j <- j + 1
+  k <- 0
+  for (missMec in missMecLevels) {
+    k <- k + 1
+    l <- 0
+    for (M in MLevels) {
+      l <- l + 1
+      p <- missProp/100
+      
+      resTable[rowNum,1] <- missProp
+      resTable[rowNum,2] <- missMec
+      resTable[rowNum,3] <- M
+
+      for (i in 1:length(methodsToPrint)) {
+        resTable[rowNum,i+3] <- round(median(df[j,k,l,,methodsToPrint[i]]),1)
+      }
+      rowNum <- rowNum + 1
+    }
+  }
+}
+
+colnames(resTable) <- c("Miss. %", "Miss. mec.", "Imputations", methodNames[methodsToPrint])
+knitr::kable(resTable)
+
+```
