@@ -10,106 +10,106 @@ library(xtable)
 #construct dataset for analysis from the various wave 2 Millenium Cohort Study datasets
 
 #w2 child assessment dataset
-  w2_child_assessment <- read.delim("./w2_delim/UKDA-5350-tab/tab/mcs2_child_assessment_data.tab")
-  
-  #age in categories for Bracken test
-  #we will treat this as continuous since the categories of equal width of age, and are quite narrow (2.5 months)
-  table(w2_child_assessment$bbrknage, useNA=c("ifany"))
-  w2_child_assessment$bbrknage[w2_child_assessment$bbrknage<0] <- NA
-  
-  #Bracken score-measure of readiness for school
-  hist(w2_child_assessment$bdsrcs00)
-  table(w2_child_assessment$bdsrcs00, useNA="ifany")
-  w2_child_assessment$bdsrcs00[w2_child_assessment$bdsrcs00<0] <- NA
-  colnames(w2_child_assessment)[which(colnames(w2_child_assessment)=="bdsrcs00")] <- "bracken"
-  
-  #create subset of variables we will use
-  w2_child_assessment2 <- subset(w2_child_assessment, select=c("mcsid", "bracken"))
-  summary(w2_child_assessment2)
+w2_child_assessment <- read.delim("./w2_delim/UKDA-5350-tab/tab/mcs2_child_assessment_data.tab")
+
+#age in categories for Bracken test
+#we will treat this as continuous since the categories of equal width of age, and are quite narrow (2.5 months)
+table(w2_child_assessment$bbrknage, useNA=c("ifany"))
+w2_child_assessment$bbrknage[w2_child_assessment$bbrknage<0] <- NA
+
+#Bracken score-measure of readiness for school
+hist(w2_child_assessment$bdsrcs00)
+table(w2_child_assessment$bdsrcs00, useNA="ifany")
+w2_child_assessment$bdsrcs00[w2_child_assessment$bdsrcs00<0] <- NA
+colnames(w2_child_assessment)[which(colnames(w2_child_assessment)=="bdsrcs00")] <- "bracken"
+
+#create subset of variables we will use
+w2_child_assessment2 <- subset(w2_child_assessment, select=c("mcsid", "bracken"))
+summary(w2_child_assessment2)
 
 #w2 parent interview dataset
-  w2_parent_interview <- read.delim("./w2_delim/UKDA-5350-tab/tab/mcs2_parent_interview.tab")
-  
-  #w2 total family income (couple)
-  table(w2_parent_interview$bminco00, useNA=c("ifany"))
-  #w2 total family income (lone parent)
-  table(w2_parent_interview$bmincm00, useNA=c("ifany"))
-  #combine these two variables
-  w2_parent_interview$income <- w2_parent_interview$bminco00
-  w2_parent_interview$income[is.na(w2_parent_interview$income)==TRUE] <- w2_parent_interview$bmincm00[is.na(w2_parent_interview$income)==TRUE]
-  w2_parent_interview$income[w2_parent_interview$income>18] <- NA
-  
-  #w2 MAIN Marital status
-  table(w2_parent_interview$bmfcin00, useNA=c("ifany"))
-  w2_parent_interview$bmfcin00[w2_parent_interview$bmfcin00<0] <- NA
-  #combine into married and everything else
-  w2_parent_interview$bmfcin00[w2_parent_interview$bmfcin00>3] <- 1
-  w2_parent_interview$bmfcin00[w2_parent_interview$bmfcin00==3] <- 2
-  colnames(w2_parent_interview)[which(colnames(w2_parent_interview)=="bmfcin00")] <- "maritalStatus"
-  w2_parent_interview$maritalStatus <- factor(w2_parent_interview$maritalStatus, 
-                                              labels=c("Not married", "Married"))
-  
-  #tenure of current home
-  table(w2_parent_interview$bmroow00, useNA=c("ifany"))
-  #combine categories to give: owned, rented, and other
-  w2_parent_interview$bmroow00[w2_parent_interview$bmroow00<0] <- NA
-  w2_parent_interview$bmroow00 <- cut(w2_parent_interview$bmroow00,
-                                             breaks=c(-Inf, 0, 3.5, 6.5,Inf), 
-                                             labels=FALSE)
-  table(w2_parent_interview$bmroow00, useNA=c("ifany"))
-  colnames(w2_parent_interview)[which(colnames(w2_parent_interview)=="bmroow00")] <- "tenure"
-  w2_parent_interview$tenure <- w2_parent_interview$tenure - 1
-  w2_parent_interview$tenure <- factor(w2_parent_interview$tenure,
-                                       labels=c("Owned", "Rented", "Other"))
-  
-  #any problems with hearing, wave 2
-  table(w2_parent_interview$bmherpa0, useNA=c("ifany"))
-  #not applicable to missing
-  w2_parent_interview$bmherpa0[w2_parent_interview$bmherpa0<0] <- NA
-  #don't know to missing
-  w2_parent_interview$bmherpa0[w2_parent_interview$bmherpa0>2] <- NA
-  colnames(w2_parent_interview)[which(colnames(w2_parent_interview)=="bmherpa0")] <- "hearing"
-  w2_parent_interview$hearing <- factor(w2_parent_interview$hearing,
-                                        labels=c("Yes", "No"))
-  
-  w2_parent_interview2 <- subset(w2_parent_interview, select=c("mcsid", "income", "maritalStatus", "tenure", "hearing"))
-  summary(w2_parent_interview2)
+w2_parent_interview <- read.delim("./w2_delim/UKDA-5350-tab/tab/mcs2_parent_interview.tab")
 
-  
+#w2 total family income (couple)
+table(w2_parent_interview$bminco00, useNA=c("ifany"))
+#w2 total family income (lone parent)
+table(w2_parent_interview$bmincm00, useNA=c("ifany"))
+#combine these two variables
+w2_parent_interview$income <- w2_parent_interview$bminco00
+w2_parent_interview$income[is.na(w2_parent_interview$income)==TRUE] <- w2_parent_interview$bmincm00[is.na(w2_parent_interview$income)==TRUE]
+w2_parent_interview$income[w2_parent_interview$income>18] <- NA
+
+#w2 MAIN Marital status
+table(w2_parent_interview$bmfcin00, useNA=c("ifany"))
+w2_parent_interview$bmfcin00[w2_parent_interview$bmfcin00<0] <- NA
+#combine into married and everything else
+w2_parent_interview$bmfcin00[w2_parent_interview$bmfcin00>3] <- 1
+w2_parent_interview$bmfcin00[w2_parent_interview$bmfcin00==3] <- 2
+colnames(w2_parent_interview)[which(colnames(w2_parent_interview)=="bmfcin00")] <- "maritalStatus"
+w2_parent_interview$maritalStatus <- factor(w2_parent_interview$maritalStatus, 
+                                            labels=c("Not married", "Married"))
+
+#tenure of current home
+table(w2_parent_interview$bmroow00, useNA=c("ifany"))
+#combine categories to give: owned, rented, and other
+w2_parent_interview$bmroow00[w2_parent_interview$bmroow00<0] <- NA
+w2_parent_interview$bmroow00 <- cut(w2_parent_interview$bmroow00,
+                                    breaks=c(-Inf, 0, 3.5, 6.5,Inf), 
+                                    labels=FALSE)
+table(w2_parent_interview$bmroow00, useNA=c("ifany"))
+colnames(w2_parent_interview)[which(colnames(w2_parent_interview)=="bmroow00")] <- "tenure"
+w2_parent_interview$tenure <- w2_parent_interview$tenure - 1
+w2_parent_interview$tenure <- factor(w2_parent_interview$tenure,
+                                     labels=c("Owned", "Rented", "Other"))
+
+#any problems with hearing, wave 2
+table(w2_parent_interview$bmherpa0, useNA=c("ifany"))
+#not applicable to missing
+w2_parent_interview$bmherpa0[w2_parent_interview$bmherpa0<0] <- NA
+#don't know to missing
+w2_parent_interview$bmherpa0[w2_parent_interview$bmherpa0>2] <- NA
+colnames(w2_parent_interview)[which(colnames(w2_parent_interview)=="bmherpa0")] <- "hearing"
+w2_parent_interview$hearing <- factor(w2_parent_interview$hearing,
+                                      labels=c("Yes", "No"))
+
+w2_parent_interview2 <- subset(w2_parent_interview, select=c("mcsid", "income", "maritalStatus", "tenure", "hearing"))
+summary(w2_parent_interview2)
+
+
 #w2 derived dataset
-  w2_derived <- read.delim("./w2_delim/UKDA-5350-tab/tab/mcs2_derived_variables.tab")
-  
-  #S2 MAIN DV Respondent's Ethnic Group - 8 category classification
-  table(w2_derived$BMD08E00, useNA=c("ifany"))
-  w2_derived$BMD08E00[w2_derived$BMD08E00<0] <- NA
-  colnames(w2_derived)[which(colnames(w2_derived)=="BMD08E00")] <- "ethnicity"
-  #dichotomise to binary white/non-white to simplify modelling
-  w2_derived$ethnicity[w2_derived$ethnicity>1] <- 2
-  w2_derived$ethnicity <- factor(w2_derived$ethnicity, labels=c("White", "Non-white"))
-  
-  #main respondent is in work or not
-  table(w2_derived$BMDWRK00, useNA=c("ifany"))
-  w2_derived$BMDWRK00[w2_derived$BMDWRK00<0] <- NA
-  colnames(w2_derived)[which(colnames(w2_derived)=="BMDWRK00")] <- "inWork"
-  w2_derived$inWork <- factor(w2_derived$inWork, labels=c("In work", "Not in work"))
-  
-  #number of siblings
-  table(w2_derived$BDOTHS00, useNA=c("ifany"))
-  w2_derived$BDOTHS00[w2_derived$BDOTHS00<0] <- NA
-  #categorise into a 4-level variable (0, 1, 2, 3 or more)
-  w2_derived$noSiblings <- cut(w2_derived$BDOTHS00, breaks=c(-Inf, 0.5, 1.5, 2.5,Inf), 
-                               labels=FALSE)
-  w2_derived$noSiblings <- factor(w2_derived$noSiblings, labels=c("0", "1", "2", "3 or more"))
-  
-  table(w2_derived$BMDAGI00, useNA=c("ifany"))
-  w2_derived$respAge <- w2_derived$BMDAGI00
-  w2_derived$respAge[w2_derived$respAge<0] <- NA
-  
-  #rename mcsid to lower case
-  colnames(w2_derived)[which(colnames(w2_derived)=="MCSID")] <- "mcsid"
-  
-  w2_derived2 <- subset(w2_derived, select=c("mcsid", "ethnicity", "inWork", "noSiblings", "respAge"))
-  summary(w2_derived2)
+w2_derived <- read.delim("./w2_delim/UKDA-5350-tab/tab/mcs2_derived_variables.tab")
+
+#S2 MAIN DV Respondent's Ethnic Group - 8 category classification
+table(w2_derived$BMD08E00, useNA=c("ifany"))
+w2_derived$BMD08E00[w2_derived$BMD08E00<0] <- NA
+colnames(w2_derived)[which(colnames(w2_derived)=="BMD08E00")] <- "ethnicity"
+#dichotomise to binary white/non-white to simplify modelling
+w2_derived$ethnicity[w2_derived$ethnicity>1] <- 2
+w2_derived$ethnicity <- factor(w2_derived$ethnicity, labels=c("White", "Non-white"))
+
+#main respondent is in work or not
+table(w2_derived$BMDWRK00, useNA=c("ifany"))
+w2_derived$BMDWRK00[w2_derived$BMDWRK00<0] <- NA
+colnames(w2_derived)[which(colnames(w2_derived)=="BMDWRK00")] <- "inWork"
+w2_derived$inWork <- factor(w2_derived$inWork, labels=c("In work", "Not in work"))
+
+#number of siblings
+table(w2_derived$BDOTHS00, useNA=c("ifany"))
+w2_derived$BDOTHS00[w2_derived$BDOTHS00<0] <- NA
+#categorise into a 4-level variable (0, 1, 2, 3 or more)
+w2_derived$noSiblings <- cut(w2_derived$BDOTHS00, breaks=c(-Inf, 0.5, 1.5, 2.5,Inf), 
+                             labels=FALSE)
+w2_derived$noSiblings <- factor(w2_derived$noSiblings, labels=c("0", "1", "2", "3 or more"))
+
+table(w2_derived$BMDAGI00, useNA=c("ifany"))
+w2_derived$respAge <- w2_derived$BMDAGI00
+w2_derived$respAge[w2_derived$respAge<0] <- NA
+
+#rename mcsid to lower case
+colnames(w2_derived)[which(colnames(w2_derived)=="MCSID")] <- "mcsid"
+
+w2_derived2 <- subset(w2_derived, select=c("mcsid", "ethnicity", "inWork", "noSiblings", "respAge"))
+summary(w2_derived2)
 
 #merge datasets
 mergedData <- merge(w2_child_assessment2, w2_parent_interview2, by="mcsid")
@@ -189,16 +189,18 @@ vcovHC(cca)
 
 # MLMI and PDMI
 library(mlmi)
-M <- 100
-B <- 1000
-#MLMI
-#we will time all the analyses
-mlmiTimes <- array(0, dim=c(5,2,5))
-mlmiTimes[1,1,] <- proc.time()
-mlmi_imp <- mixImp(mergedDataNumerics, nCat=6, M=M, pd=FALSE, marginsType=1, designType=1, rseed=61236)
-mlmiTimes[1,2,] <- proc.time()
 
-#WB
+#define a function to run the analyses and print results table
+runAnalysis <- function(M, B) {
+  
+  #MLMI
+  #we will time all the analyses
+  mlmiTimes <- array(0, dim=c(5,2,5))
+  mlmiTimes[1,1,] <- proc.time()
+  mlmi_imp <- mixImp(mergedDataNumerics, nCat=6, M=M, pd=FALSE, marginsType=1, designType=1, rseed=NULL)
+  mlmiTimes[1,2,] <- proc.time()
+  
+  #WB
   myAnalysis <- function(inputData) {
     mod <- lm(outcomeModFormula, data=inputData)
     myvcov <- as.matrix(Matrix::bdiag(vcov(mod), 2*sigma(mod)^4/(mod$df.residual)))
@@ -207,8 +209,8 @@ mlmiTimes[1,2,] <- proc.time()
   mlmiTimes[2,1,] <- proc.time()
   mlmiWB <- withinBetween(mlmi_imp, myAnalysis)
   mlmiTimes[2,2,] <- proc.time()
-
-#SB
+  
+  #SB
   regscore <- function(inputData, parm) {
     beta <- parm[1:(length(parm)-1)]
     sigmasq <- parm[length(parm)]
@@ -221,8 +223,8 @@ mlmiTimes[1,2,] <- proc.time()
   mlmiTimes[3,1,] <- proc.time()
   mlmiSB <- scoreBased(mlmi_imp, myAnalysis, regscore)
   mlmiTimes[3,2,] <- proc.time()
-
-#bootstrap
+  
+  #bootstrap
   myAnalysisBoot <- function(inputData) {
     mod <- lm(outcomeModFormula, data=inputData)
     c(mod$coef, sigma(mod)^2)
@@ -230,51 +232,72 @@ mlmiTimes[1,2,] <- proc.time()
   
   library(bootImpute)
   mlmiTimes[4,1,] <- proc.time()
-  mix::rngseed(412896)
+  #mix::rngseed(412896)
+  #set.seed(65423)
   mlmi_boot_imp <- bootImpute(mergedDataNumerics, mixImp, nBoot=B, nImp=2, nCat=6, M=1, pd=FALSE, marginsType=1, designType=1, rseed=NULL)
   mlmiTimes[4,2,] <- proc.time()
   mlmiTimes[5,1,] <- proc.time()
   mlmi_boot_analyse <- bootImputeAnalyse(mlmi_boot_imp, myAnalysisBoot)
   mlmiTimes[5,2,] <- proc.time()
+  
+  #PDMI
+  pdmiTimes <- array(0, dim=c(5,2,5))
+  pdmiTimes[1,1,] <- proc.time()
+  pdmi_imp <- mixImp(mergedDataNumerics, nCat=6, M=M, pd=TRUE, marginsType=1, designType=1, rseed=NULL)
+  pdmiTimes[1,2,] <- proc.time()
+  pdmiTimes[2,1,] <- proc.time()
+  pdmiWB <- withinBetween(pdmi_imp, myAnalysis)
+  pdmiTimes[2,2,] <- proc.time()
+  pdmiTimes[3,1,] <- proc.time()
+  pdmiSB <- scoreBased(pdmi_imp, myAnalysis, regscore)
+  pdmiTimes[3,2,] <- proc.time()
+  
+  pdmiTimes[4,1,] <- proc.time()
+  #mix::rngseed(412896)
+  #set.seed(65423)
+  pdmi_boot_imp <- bootImpute(mergedDataNumerics, mixImp, nBoot=B, nImp=2, nCat=6, M=1, pd=TRUE, marginsType=1, designType=1, rseed=NULL)
+  pdmiTimes[4,2,] <- proc.time()
+  pdmiTimes[5,1,] <- proc.time()
+  pdmi_boot_analyse <- bootImputeAnalyse(pdmi_boot_imp, myAnalysisBoot)
+  pdmiTimes[5,2,] <- proc.time()
+  
+  #print results tables in LaTeX
+  
+  #compare timings
+  timingTable <- cbind(mlmiTimes[,2,3]-mlmiTimes[,1,3], pdmiTimes[,2,3]-pdmiTimes[,1,3])
+  rownames(timingTable) <- c("Imputation", "Within-between SE calculation", "Score-based SE calculation",
+                             "Bootstrap imputation", "Bootstrap SE calculation")
+  colnames(timingTable) <- c("MLMI", "PDMI")
+  xtable(timingTable, digits=1)
+  
+  estTable <- cbind(mlmiWB$est,pdmiWB$est,mlmi_boot_analyse$ests,pdmi_boot_analyse$ests,myAnalysisBoot(mergedDataNumerics))
+  #remove final row which corresponds to residual variance
+  estTable <- estTable[1:10,]
+  colnames(estTable) <- c("MLMI WB", "PDMI WB", "MLMI Boot", "PDMI Boot", "Complete case")
+  rownames(estTable) <- c("Intercept", "Respondent age (years)", "Family income", "Rented housing", "Other housing",
+                          "Child hearing loss", "Non-white", "1 sibling", "2 siblings", "3 or more siblings")
+  
+  seTable <- cbind(diag(mlmiSB$var)^0.5, diag(pdmiSB$var)^0.5, 
+                   diag(mlmiWB$var)^0.5, diag(pdmiWB$var)^0.5, mlmi_boot_analyse$var^0.5, pdmi_boot_analyse$var^0.5)
+  #remove last row corresponding to residual variance
+  seTable <- seTable[1:10,]
+  colnames(seTable) <- c("MLMI SB", "PDMI SB", "MLMI WB", "PDMI WB", "MLMI Boot", "PDMI Boot")
+  rownames(seTable) <- rownames(estTable)
+  
+  list(timingTable=timingTable, estTable=estTable, seTable=seTable)
+}
 
-#PDMI
-pdmiTimes <- array(0, dim=c(5,2,5))
-pdmiTimes[1,1,] <- proc.time()
-pdmi_imp <- mixImp(mergedDataNumerics, nCat=6, M=M, pd=TRUE, marginsType=1, designType=1, rseed=61236)
-pdmiTimes[1,2,] <- proc.time()
-pdmiTimes[2,1,] <- proc.time()
-pdmiWB <- withinBetween(pdmi_imp, myAnalysis)
-pdmiTimes[2,2,] <- proc.time()
-pdmiTimes[3,1,] <- proc.time()
-pdmiSB <- scoreBased(pdmi_imp, myAnalysis, regscore)
-pdmiTimes[3,2,] <- proc.time()
-
-pdmiTimes[4,1,] <- proc.time()
+#set seeds only once at start
 mix::rngseed(412896)
-pdmi_boot_imp <- bootImpute(mergedDataNumerics, mixImp, nBoot=B, nImp=2, nCat=6, M=1, pd=TRUE, marginsType=1, designType=1, rseed=NULL)
-pdmiTimes[4,2,] <- proc.time()
-pdmiTimes[5,1,] <- proc.time()
-pdmi_boot_analyse <- bootImputeAnalyse(pdmi_boot_imp, myAnalysisBoot)
-pdmiTimes[5,2,] <- proc.time()
+set.seed(65423)
 
-#print results tables in LaTeX
-estTable <- cbind(myAnalysisBoot(mergedDataNumerics),mlmiWB$est,mlmi_boot_analyse$ests,pdmiWB$est,pdmi_boot_analyse$ests)
-colnames(estTable) <- c("Complete case analysis", "MLMI", "MLMI Boot", "PDMI", "PDMI Boot")
-rownames(estTable) <- c("Intercept", "Resp. age (years)", "Family income code", "Rented housing", "Other housing",
-                        "Child hearing loss", "Non-white", "1 sibling", "2 siblings", "3 or more siblings", 
-                        "Residual variance")
+run1 <- runAnalysis(M=100,B=50)
+xtable(run1$timingTable, digits=1)
+xtable(run1$estTable)
+xtable(run1$seTable)
 
-xtable(estTable)
-
-seTable <- cbind(diag(mlmiWB$var)^0.5, diag(mlmiSB$var)^0.5, mlmi_boot_analyse$var^0.5,
-                 diag(pdmiWB$var)^0.5, diag(pdmiSB$var)^0.5, pdmi_boot_analyse$var^0.5)
-colnames(seTable) <- c("MLMI WB", "MLMI SB", "MLMI Boot", "PDMI WB", "PDMI SB", "PDMI Boot")
-rownames(seTable) <- rownames(estTable)
-xtable(seTable)
-
-#compare timings
-timingTable <- cbind(mlmiTimes[,2,3]-mlmiTimes[,1,3], pdmiTimes[,2,3]-pdmiTimes[,1,3])
-rownames(timingTable) <- c("Imputation", "WB variance", "SB variance",
-                           "Bootstrap imputation", "Bootstrap variance")
-colnames(timingTable) <- c("MLMI", "PDMI")
-xtable(timingTable, digits=1)
+#re-run with larger M and B
+run2 <- runAnalysis(M=1000,B=500)
+xtable(run2$timingTable, digits=1)
+xtable(run2$estTable)
+xtable(run2$seTable)
